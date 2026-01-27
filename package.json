@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/CratCratCratVB/GymnasieArbete_ViktorBTE23IT#readme",
   "dependencies": {
+    "express": "^5.2.1",
     "socket.io": "^4.8.3"
   }
 }

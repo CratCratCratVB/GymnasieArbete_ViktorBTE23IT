@@ -5,6 +5,20 @@
 const express = require("express");
 const { Server } = require("socket.io");
 const { createServer } = require('http');
+const session = require("express-session");
+
+app.set('trust proxy', 1) // trust first proxy
+const seshMw = session({
+  secret: 'Hunhow',
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: true }
+});
+
+app.use(seshMw);
+
+
+
 
 const app = express();
 const server = createServer(app);
@@ -20,6 +34,7 @@ server.listen(3600, () => {
 
 
 const io = new Server(server);
+io.engine.use(seshMw);
 
 // if connected, run addConnection
 io.on("connection", addConnection);

@@ -14,6 +14,12 @@ socket.on("globalChat", handleChatClient);
 
 function handleChatClient(msg){
     console.log(msg)
+
+    const chatB = document.querySelector("#chatB");
+    const mesText = document.createElement("p");
+    mesText.innerText = msg;
+    chatB.appendChild(mesText);
+
 }
 
 const mesForm = document.querySelector("#mesForm");
@@ -21,7 +27,8 @@ mesForm.addEventListener("submit", submitMes);
 
 function submitMes(ev){
     ev.preventDefault();
+    const msg = ev.target.msg.value;
 
-    console.log(ev.target.msg);
-
+    if(msg.trim()) sendMes(msg);
+    ev.target.msg.value = ""
 }
