@@ -7,6 +7,9 @@ const { Server } = require("socket.io");
 const { createServer } = require('http');
 const session = require("express-session");
 
+const app = express();
+const server = createServer(app);
+
 app.set('trust proxy', 1) // trust first proxy
 const seshMw = session({
   secret: 'Hunhow',
@@ -16,13 +19,6 @@ const seshMw = session({
 });
 
 app.use(seshMw);
-
-
-
-
-const app = express();
-const server = createServer(app);
-
 
 // static files css,jpg, client-script
 app.use(express.static("public"));
@@ -54,3 +50,7 @@ function handleChat(msg){
 
     io.emit("globalChat", "Sent from server: "+msg)
 }
+
+app.get("/", (req, res)=>{
+  res.sendFile(__dirname + "/public/index.html");
+});
