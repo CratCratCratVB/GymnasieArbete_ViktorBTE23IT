@@ -4,18 +4,23 @@
 // --------------------------------------------------------------------
 const express = require("express");
 const { Server } = require("socket.io");
+const fs = require("fs");
+
+const bcrypt = require("bcryptjs");
 const { createServer } = require('http');
 const session = require("express-session");
+const { json } = require("stream/consumers");
 
 const app = express();
 const server = createServer(app);
+app.use(express.urlencoded({extended: true}));
 
 app.set('trust proxy', 1) // trust first proxy
 const seshMw = session({
-  secret: 'Hunhow',
+  secret: 'CratChatSecret',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: true }
+  cookie: {}
 });
 
 app.use(seshMw);
@@ -28,9 +33,26 @@ server.listen(3600, () => {
   console.log('server running');
 });
 
+function checkAuth(req,res,next){
+  if(!req.session.user){
+    return res.status(403).send("You must be logged in to use function!");
+  }
+  next();
+}
 
+
+//websockets stuff
 const io = new Server(server);
 io.engine.use(seshMw);
+
+io.use((socket, next) => {
+  const req = socket.request;
+
+  if(!req.session || !req.session.user){
+    return next(new Error("Not logged in! Register/Login"));
+  }
+  next();
+})
 
 // if connected, run addConnection
 io.on("connection", addConnection);
@@ -40,8 +62,6 @@ function addConnection(socket){
     console.log("Connected");
 
     socket.on("chat", handleChat);
-
-
 }
 
 function handleChat(msg){
@@ -51,6 +71,41 @@ function handleChat(msg){
     io.emit("globalChat", "Sent from server: "+msg)
 }
 
-app.get("/", (req, res)=>{
+app.get("/home", checkAuth, (req, res)=>{
   res.sendFile(__dirname + "/public/index.html");
 });
+
+
+//user register and login
+app.post("/register", (req,res) =>{
+
+  const email = req.body.email;
+  const password = bcrypt.hashSync(req.body.password, 12);
+  const Id = "Id_" + Date.now();
+  const role = "user";
+
+  const users = JSON.parse(fs.readFileSync("users.json").toString());
+  if (users.find(u => u.email == email)) return res.send("User already exists, please try again.");
+
+  users.push({Id, email, password, role});
+  fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
+
+  res.redirect("/home/?User_Created");
+
+}); 
+
+app.post("/login", (req,res) => {
+  const email = req.body.email;
+  const password = req.body.password;
+
+  const users = JSON.parse(fs.readFileSync("users.json").toString());
+  const user = users.find(u => u.email == email);
+
+  if(!user) return res.send("Incorrect Credentials, try again.");
+
+  const checkP = bcrypt.compareSync(password, user.password);
+  if(!checkP) return res.send("Incorrect Credentials, try again.");
+
+  req.session.user = {Id: user.Id, email: user.email, role: user.role};
+  res.redirect("/home/?Login_Succsess");
+})

@@ -6,6 +6,14 @@
     <title>Document</title>
     <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
     <script src="client.js" defer></script>
+
+    <style>
+        div{
+            border: 1px solid;
+        }
+
+
+    </style>
 </head>
 
 
@@ -15,11 +23,31 @@
         CratChat
     </h1>
 
-    <div id="chatB"></div>
+    <div class="register">
+        <h2>Register</h2>
+        <form action="/register" method="post">
+            <input type="email" name="email" placeholder="Email">
+            <input type="password" name="password" placeholder="Password">
+            <input type="submit" value="Register">
+        </form>
+    </div>
 
+    <div class="login">
+        <h2>Login</h2>
+        <form action="/login" method="post">
+            <input type="email" name="email" placeholder="Email">
+            <input type="password" name="password" placeholder="Password">
+            <input type="submit" value="Login">
+        </form>
+    </div>
+
+    <br>
+
+    <div id="chatB">
         <form action="" name="msg" id="mesForm">
             <input name="msg" type="text" placeholder="Enter message: ">
         </form>
+    </div>
 
 </body>
 
