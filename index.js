@@ -13,6 +13,7 @@ const { json } = require("stream/consumers");
 
 const app = express();
 const server = createServer(app);
+
 app.use(express.urlencoded({extended: true}));
 
 app.set('trust proxy', 1) // trust first proxy
@@ -71,7 +72,7 @@ function handleChat(msg){
     io.emit("globalChat", "Sent from server: "+msg)
 }
 
-app.get("/home", checkAuth, (req, res)=>{
+app.get("/home", (req, res)=>{
   res.sendFile(__dirname + "/public/index.html");
 });
 

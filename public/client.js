@@ -1,7 +1,12 @@
 console.log("client")
 
 // Connects user to website, 
-const socket = io();
+const socket = io({
+    withCredentials: true
+
+});
+
+
 
 function sendMes(msg){
 
