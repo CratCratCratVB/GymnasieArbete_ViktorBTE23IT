@@ -59,17 +59,31 @@ io.use((socket, next) => {
 io.on("connection", addConnection);
 
 function addConnection(socket){
-
     console.log("Connected");
 
-    socket.on("chat", handleChat);
+    socket.on("chat", (msg) => {
+      handleChat(msg, socket);
+    });
 }
 
-function handleChat(msg){
-    console.log("client sent: " + msg)
-    // send msg to all connected users
+function handleChat(msg, socket){
+    console.log("client sent: " + msg);
+    if(socket.request.session.user){
+      const user = socket.request.session.user;
 
-    io.emit("globalChat", "Sent from server: "+msg)
+      // send msg to all connected users IF logged in
+      return io.emit("globalChat",{
+        username: user.username,
+        message: msg,
+        ToS: Date.now()
+      });
+    }
+
+    // if user isn't logged in
+    io.emit("chat", {
+      username: "SYS-USER-REGISTER",
+      message: "Not Logged In"
+    });
 }
 
 app.get("/home", (req, res)=>{
@@ -80,6 +94,7 @@ app.get("/home", (req, res)=>{
 //user register and login
 app.post("/register", (req,res) =>{
 
+  const username = req.body.username;
   const email = req.body.email;
   const password = bcrypt.hashSync(req.body.password, 12);
   const Id = "Id_" + Date.now();
@@ -88,7 +103,7 @@ app.post("/register", (req,res) =>{
   const users = JSON.parse(fs.readFileSync("users.json").toString());
   if (users.find(u => u.email == email)) return res.send("User already exists, please try again.");
 
-  users.push({Id, email, password, role});
+  users.push({username, Id, email, password, role});
   fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
 
   res.redirect("/home/?User_Created");
@@ -96,17 +111,17 @@ app.post("/register", (req,res) =>{
 }); 
 
 app.post("/login", (req,res) => {
-  const email = req.body.email;
+  const username = req.body.username;
   const password = req.body.password;
 
   const users = JSON.parse(fs.readFileSync("users.json").toString());
-  const user = users.find(u => u.email == email);
+  const user = users.find(u => u.username == username);
 
   if(!user) return res.send("Incorrect Credentials, try again.");
 
   const checkP = bcrypt.compareSync(password, user.password);
   if(!checkP) return res.send("Incorrect Credentials, try again.");
 
-  req.session.user = {Id: user.Id, email: user.email, role: user.role};
+  req.session.user = {username: user.username, Id: user.Id, email: user.email, role: user.role};
   res.redirect("/home/?Login_Succsess");
 })

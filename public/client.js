@@ -3,16 +3,13 @@ console.log("client")
 // Connects user to website, 
 const socket = io({
     withCredentials: true
-
 });
 
 
 
 function sendMes(msg){
-
     socket.emit("chat", msg)
     console.log("Message sent: "+msg)
-
 }
 
 socket.on("globalChat", handleChatClient);
