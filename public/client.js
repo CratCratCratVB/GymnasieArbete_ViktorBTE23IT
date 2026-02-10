@@ -7,19 +7,25 @@ const socket = io({
 
 
 
+
 function sendMes(msg){
     socket.emit("chat", msg)
-    console.log("Message sent: "+msg)
+    console.log("Message sent: ", msg)
 }
 
 socket.on("globalChat", handleChatClient);
+
+socket.on("notLogged", data =>{
+  alert(data.message);
+});
 
 function handleChatClient(msg){
     console.log(msg)
 
     const chatB = document.querySelector("#chatB");
     const mesText = document.createElement("p");
-    mesText.innerText = msg;
+
+    mesText.innerText = `${msg.username}: ${msg.message}`;
     chatB.appendChild(mesText);
 
 }

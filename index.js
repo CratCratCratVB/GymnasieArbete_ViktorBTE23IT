@@ -20,7 +20,7 @@ app.set('trust proxy', 1) // trust first proxy
 const seshMw = session({
   secret: 'CratChatSecret',
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
   cookie: {}
 });
 
@@ -46,14 +46,9 @@ function checkAuth(req,res,next){
 const io = new Server(server);
 io.engine.use(seshMw);
 
-io.use((socket, next) => {
-  const req = socket.request;
-
-  if(!req.session || !req.session.user){
-    return next(new Error("Not logged in! Register/Login"));
-  }
+io.use((socket, next) => {  
   next();
-})
+});
 
 // if connected, run addConnection
 io.on("connection", addConnection);
@@ -67,7 +62,7 @@ function addConnection(socket){
 }
 
 function handleChat(msg, socket){
-    console.log("client sent: " + msg);
+    console.log("client sent: ", msg);
     if(socket.request.session.user){
       const user = socket.request.session.user;
 
@@ -79,6 +74,11 @@ function handleChat(msg, socket){
       });
     }
 
+    if(!socket.request.session.user){
+      return socket.emit("notLogged", {
+        message: "You must be logged in to use this function!"
+      });
+    }
     // if user isn't logged in
     io.emit("chat", {
       username: "SYS-USER-REGISTER",
@@ -102,13 +102,14 @@ app.post("/register", (req,res) =>{
 
   const users = JSON.parse(fs.readFileSync("users.json").toString());
   if (users.find(u => u.email == email)) return res.send("User already exists, please try again.");
+  if (users.find(u => u.username == username)) return res.send("Username already taken, please try another");
 
   users.push({username, Id, email, password, role});
   fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
 
   res.redirect("/home/?User_Created");
 
-}); 
+});
 
 app.post("/login", (req,res) => {
   const username = req.body.username;
@@ -124,4 +125,4 @@ app.post("/login", (req,res) => {
 
   req.session.user = {username: user.username, Id: user.Id, email: user.email, role: user.role};
   res.redirect("/home/?Login_Succsess");
-})
+});
