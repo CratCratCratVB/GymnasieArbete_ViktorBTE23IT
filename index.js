@@ -34,12 +34,12 @@ server.listen(3600, () => {
   console.log('server running');
 });
 
-function checkAuth(req,res,next){
-  if(!req.session.user){
-    return res.status(403).send("You must be logged in to use function!");
-  }
-  next();
-}
+// function checkAuth(req,res,next){
+//   if(!req.session.user){
+//     return res.status(403).send("You must be logged in to use function!");
+//   }
+//   next();
+// },  WOULD check for req.session.user, sends message if no user is found, ex. for admin ting
 
 
 //websockets stuff
