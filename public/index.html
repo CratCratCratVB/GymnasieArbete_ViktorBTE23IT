@@ -68,8 +68,16 @@
         }
 
         show = id => {
+
+            const logOptBox = document.getElementById(id);
+            if(!logOptBox.classList.contains("hidden")){
+                logOptBox.classList.add("hidden");
+                return;
+            }
+
             registerBox.classList.add("hidden"); 
-            loginBox.classList.add("hidden"); 
+            loginBox.classList.add("hidden");
+
             document.getElementById(id).classList.remove("hidden");
         };
     </script>
@@ -85,7 +93,7 @@
 
         <a href="#" onclick="show('registerBox')">Register</a>
         <a href="#" onclick="show('loginBox')">Login</a>
-        <a href="/Logout">Logout</a>
+        <a href="/logout">Logout</a>
     </div>
 
     <br>
@@ -120,9 +128,9 @@
 
 <footer>
     <div>
-        <h2>Contact CratChat moderation</h2>
+        <h2>Contact CratChat mod-team</h2>
         <h3>Phone-line: 076 558 27 75</h3>
-        <h3>Email: moderation@cratchat.com</h3>
+        <h3>Email: modinfo  @cratchat.com</h3>
     </div>
 </footer>
 

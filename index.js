@@ -21,7 +21,11 @@ const seshMw = session({
   secret: 'CratChatSecret',
   resave: false,
   saveUninitialized: false,
-  cookie: {}
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax"
+
+  }
 });
 
 app.use(seshMw);
@@ -125,4 +129,15 @@ app.post("/login", (req,res) => {
 
   req.session.user = {username: user.username, Id: user.Id, email: user.email, role: user.role};
   res.redirect("/home/?Login_Succsess");
+});
+
+app.get("/logout", (req, res) => {
+  req.session.destroy(err => {
+     if (err){
+      return res.send("Unable to log out or already logged out, please try again.")
+     }
+     res.clearCookie("connect.sid");
+     res.redirect("/home/?Logged_Out");
+
+  });
 });
