@@ -24,13 +24,12 @@ const seshMw = session({
   cookie: {
     httpOnly: true,
     sameSite: "lax"
-
   }
 });
 
 app.use(seshMw);
 
-// static files css,jpg, client-script
+// static files css, jpg, client-script
 app.use(express.static("public"));
 
 
@@ -66,7 +65,7 @@ function addConnection(socket){
 }
 
 function handleChat(msg, socket){
-    console.log("client sent: ", msg);
+    //console.log("client sent: ", msg); debuhh
     if(socket.request.session.user){
       const user = socket.request.session.user;
 
@@ -90,8 +89,16 @@ function handleChat(msg, socket){
     });
 }
 
+
+// home route + send user login state
 app.get("/home", (req, res)=>{
+  const loggedIn = !!req.session.user;
   res.sendFile(__dirname + "/public/index.html");
+});
+
+// second route to get login state
+app.get("/auth_stats", (req, res) =>{
+  res.json({loggedIn: !!req.session.user});
 });
 
 

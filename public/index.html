@@ -27,6 +27,9 @@
         }
 
         #topField h1 {
+            border: 1px solid;
+            border-radius: 5px;
+            padding: 0.2%;
             margin: 10;
             font-size: 35px;
         }
@@ -52,6 +55,11 @@
         padding: 15px;
         border-radius: 8px;
         border: 1px solid #ccc;
+        }
+
+        #chatB input{
+            border: 2px solid;
+            border-radius: 5px;
         }
 
         .hidden{
@@ -80,6 +88,19 @@
 
             document.getElementById(id).classList.remove("hidden");
         };
+
+        fetch("/auth_stats")
+            .then(res => res.json())
+            .then(data => {
+                if (data.loggedIn){
+                    document.getElementById("registerOpt").classList.add("hidden");
+                    document.getElementById("loginOpt").classList.add("hidden");
+                }
+                else {
+                    document.getElementById("registerOpt").classList.remove("hidden");
+                    document.getElementById("loginOpt").classList.remove("hidden");
+                }
+            });
     </script>
 </head>
 
@@ -90,9 +111,9 @@
         <h1>
             CratChat
         </h1>
-
-        <a href="#" onclick="show('registerBox')">Register</a>
-        <a href="#" onclick="show('loginBox')">Login</a>
+        <a href="#" id="registerOpt" onclick="show('registerBox')">Register</a>
+        <a href="#" id="loginOpt" onclick="show('loginBox')">Login</a>
+        <a href="/rooms">Rooms</a>
         <a href="/logout">Logout</a>
     </div>
 
@@ -128,9 +149,9 @@
 
 <footer>
     <div>
-        <h2>Contact CratChat mod-team</h2>
+        <h2>Contact CratChat Mod-Team</h2>
         <h3>Phone-line: 076 558 27 75</h3>
-        <h3>Email: modinfo  @cratchat.com</h3>
+        <h3>Email: modinfo@cratchat.com</h3>
     </div>
 </footer>
 
