@@ -95,10 +95,14 @@
                 if (data.loggedIn){
                     document.getElementById("registerOpt").classList.add("hidden");
                     document.getElementById("loginOpt").classList.add("hidden");
+                    document.getElementById("rooms").classList.remove("hidden");
+                    document.getElementById("createR").classList.remove("hidden");
                 }
                 else {
                     document.getElementById("registerOpt").classList.remove("hidden");
                     document.getElementById("loginOpt").classList.remove("hidden");
+                    document.getElementById("rooms").classList.add("hidden");
+                    document.getElementById("createR").classList.add("hidden");
                 }
             });
     </script>
@@ -113,7 +117,8 @@
         </h1>
         <a href="#" id="registerOpt" onclick="show('registerBox')">Register</a>
         <a href="#" id="loginOpt" onclick="show('loginBox')">Login</a>
-        <a href="/rooms">Rooms</a>
+        <a href="/rooms" id="rooms">Rooms</a>
+        <a href="#" id="createR">Create Room</a>
         <a href="/logout">Logout</a>
     </div>
 
@@ -136,6 +141,10 @@
             <input type="password" autocomplete="off" name="password" placeholder="Password">
             <input type="submit" value="Login">
         </form>
+    </div>
+
+    <div class="createRoom" id="createRoomBtn">
+
     </div>
 
     <br>

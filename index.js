@@ -59,11 +59,72 @@ io.on("connection", addConnection);
 function addConnection(socket){
     console.log("Connected");
 
+    //join room
+    socket.on("joinRoom", (roomName) => {
+      const user = socket.request.session.user;
+
+      if(!user){
+        return socket.emit("notLogged",
+          {message:"You must be logged in to use this function!"});
+      }
+
+      socket.join(roomName);
+      console.log(`${socket.id} joined room ${roomName}`);
+
+      socket.emit("roomJoined", {room: roomName});
+
+      socket.to(roomName).emit("userJoined", {
+        username: user.username,
+        room: roomName
+      });
+    });
+
+    //leaving room
+    socket.on("leaveRoom", (roomName) =>{
+      socket.leave(roomName);
+      console.log(`${socket.id} left room ${roomName}`);
+
+      socket.emit("roomLeft", {room: roomName});
+
+      socket.to(roomName).emit("userLeftR", {
+        username: socket.request.session.user?.username,
+        room: roomName
+      });
+    });
+
+    //room chatting (plz work :) )
+    socket.on("roomChat", ({room, message}) => {
+      handleRoomChat(room, message, socket);
+    });
+
+    //global chat
     socket.on("chat", (msg) => {
       handleChat(msg, socket);
     });
 }
 
+
+//room specific handler
+function handleRoomChat(room, msg, socket){
+  const user = socket.request.session.user;
+
+  if(!user){
+    return socket.emit("notLogged", {
+      message: "You must be logged in to use this function!"
+    });
+  }
+
+  io.to(room).emit("roomMessage",{
+    username:
+    user.username,
+    message: msg,
+    room: room,
+    ToS: Date.now()
+  });
+}
+
+
+//global handler
 function handleChat(msg, socket){
     //console.log("client sent: ", msg); debuhh
     if(socket.request.session.user){
@@ -82,11 +143,6 @@ function handleChat(msg, socket){
         message: "You must be logged in to use this function!"
       });
     }
-    // if user isn't logged in
-    io.emit("chat", {
-      username: "SYS-USER-REGISTER",
-      message: "Not Logged In"
-    });
 }
 
 
