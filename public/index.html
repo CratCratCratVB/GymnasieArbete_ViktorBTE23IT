@@ -59,6 +59,7 @@
 
         #chatB input{
             border: 2px solid;
+            width: 10vw;
             border-radius: 5px;
         }
 
@@ -73,6 +74,10 @@
         function toggleMenu(){
             let nav = document.querySelector("#logOption");
             nav.classList.toggle("hidden")
+        }
+
+        function toggleCreateRoom(){
+            document.getElementById("createRoomBtn").classList.toggle("hidden");
         }
 
         show = id => {
@@ -95,6 +100,7 @@
                 if (data.loggedIn){
                     document.getElementById("registerOpt").classList.add("hidden");
                     document.getElementById("loginOpt").classList.add("hidden");
+                    document.getElementById("createRoomBtn").classList.add("hidden");
                     document.getElementById("rooms").classList.remove("hidden");
                     document.getElementById("createR").classList.remove("hidden");
                 }
@@ -103,6 +109,7 @@
                     document.getElementById("loginOpt").classList.remove("hidden");
                     document.getElementById("rooms").classList.add("hidden");
                     document.getElementById("createR").classList.add("hidden");
+                    document.getElementById("createRoomBtn").classList.add("hidden");
                 }
             });
     </script>
@@ -118,7 +125,7 @@
         <a href="#" id="registerOpt" onclick="show('registerBox')">Register</a>
         <a href="#" id="loginOpt" onclick="show('loginBox')">Login</a>
         <a href="/rooms" id="rooms">Rooms</a>
-        <a href="#" id="createR">Create Room</a>
+        <a href="#" id="createR" onclick="toggleCreateRoom()">Create Room</a>
         <a href="/logout">Logout</a>
     </div>
 
@@ -144,7 +151,14 @@
     </div>
 
     <div class="createRoom" id="createRoomBtn">
+        <h2>Create a Room</h2>
+        <form id="createRoomForm">
+            <input type="text", id="roomNameInp" placeholder="Room Name: " required>
+            <button type="submit">Create</button>
+        </form>
+    </div>
 
+    <div>
     </div>
 
     <br>

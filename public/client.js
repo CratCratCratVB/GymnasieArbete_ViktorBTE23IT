@@ -1,12 +1,11 @@
+const { application } = require("express");
+
 console.log("client")
 
 // Connects user to website, 
 const socket = io({
     withCredentials: true
 });
-
-
-
 
 function sendMes(msg){
     socket.emit("chat", msg)
@@ -40,3 +39,18 @@ function submitMes(ev){
     if(msg.trim()) sendMes(msg);
     ev.target.msg.value = ""
 }
+
+document.getElementById("createRoomForm")?.addEventListener("submit", async (e) => {
+
+    e.preventDefault();
+    const roomName = document.getElementById("roomNameInp").value;
+
+    const res = await fetch("/createRoom", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded"},
+        body: new URLSearchParams({roomName})
+    });
+
+
+
+}); 

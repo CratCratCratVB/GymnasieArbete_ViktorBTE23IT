@@ -37,7 +37,7 @@ server.listen(3600, () => {
   console.log('server running');
 });
 
-// function checkAuth(req,res,next){
+// function checkauth(req,res,next){
 //   if(!req.session.user){
 //     return res.status(403).send("You must be logged in to use function!");
 //   }
@@ -145,6 +145,13 @@ function handleChat(msg, socket){
     }
 }
 
+//load + save rooms to JSON
+function loadRooms(){
+  return JSON.parse(fs.readFileSync("rooms.json").toString());
+}
+function saveRooms(rooms){
+  fs.writeFileSync("rooms.json", JSON.stringify(rooms, null, 2))
+}
 
 // home route + send user login state
 app.get("/home", (req, res)=>{
@@ -202,5 +209,36 @@ app.get("/logout", (req, res) => {
      res.clearCookie("connect.sid");
      res.redirect("/home/?Logged_Out");
 
+  });
+});
+
+app.post("/createRoom", (req, res) => {
+  if(!req.session.user){
+    return res.status(403).send("You must be logged in to use this function!")
+  }
+
+  const roomName = req.body.roomName;
+  if(!roomName || !roomName.trim()){
+    return res.status(400).send("Room name is required.");
+  }
+
+  const rooms = loadRooms();
+  if(rooms.find(r => r.name === roomName)){
+    return res.status(400).send("Room name already exists");
+  }
+
+  const newRoom = {
+    id: "Room_" + Date.now(),
+    name: roomName,
+    ownerId: req.session.user.Id,
+    createdDate: Date.now()
+  };
+
+  rooms.push(newRoom);
+  saveRooms(rooms);
+  
+  res.json({
+    success: true,
+    room: newRoom
   });
 });
