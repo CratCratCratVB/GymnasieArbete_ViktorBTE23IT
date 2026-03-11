@@ -9,7 +9,7 @@ const fs = require("fs");
 const bcrypt = require("bcryptjs");
 const { createServer } = require('http');
 const session = require("express-session");
-const { json } = require("stream/consumers");
+//const { json } = require("stream/consumers");
 
 const app = express();
 const server = createServer(app);
@@ -28,14 +28,35 @@ const seshMw = session({
 });
 
 app.use(seshMw);
-
 // static files css, jpg, client-script
 app.use(express.static("public"));
-
 
 server.listen(3600, () => {
   console.log('server running');
 });
+
+//load + save rooms to JSON
+function loadRooms(){
+  if(!fs.existsSync("rooms.json")){
+    fs.writeFileSync("rooms.json", "[]");
+  }
+  return JSON.parse(fs.readFileSync("rooms.json").toString());
+}
+
+function saveRooms(rooms){
+  fs.writeFileSync("rooms.json", JSON.stringify(rooms, null, 2))
+}
+
+// get rooms
+app.get("/api/rooms", (req,res) => {
+  const rooms = loadRooms();
+  res.json(rooms);
+});
+
+app.get("/rooms", (req, res) => {
+  res.sendFile(__dirname + "/public/rooms.html");
+});
+
 
 // function checkauth(req,res,next){
 //   if(!req.session.user){
@@ -145,14 +166,6 @@ function handleChat(msg, socket){
     }
 }
 
-//load + save rooms to JSON
-function loadRooms(){
-  return JSON.parse(fs.readFileSync("rooms.json").toString());
-}
-function saveRooms(rooms){
-  fs.writeFileSync("rooms.json", JSON.stringify(rooms, null, 2))
-}
-
 // home route + send user login state
 app.get("/home", (req, res)=>{
   const loggedIn = !!req.session.user;
@@ -229,7 +242,7 @@ app.post("/createRoom", (req, res) => {
 
   const newRoom = {
     id: "Room_" + Date.now(),
-    name: roomName,
+    name: roomName.trim(),
     ownerId: req.session.user.Id,
     createdDate: Date.now()
   };
@@ -237,6 +250,8 @@ app.post("/createRoom", (req, res) => {
   rooms.push(newRoom);
   saveRooms(rooms);
   
+  console.log("CreateRoom request received: ", req.body);
+
   res.json({
     success: true,
     room: newRoom

@@ -152,8 +152,8 @@
 
     <div class="createRoom" id="createRoomBtn">
         <h2>Create a Room</h2>
-        <form id="createRoomForm">
-            <input type="text", id="roomNameInp" placeholder="Room Name: " required>
+        <form action="/createRoom" id="createRoomForm" method="post">
+            <input name="roomName" type="text" id="roomNameInp" placeholder="Room Name: ">
             <button type="submit">Create</button>
         </form>
     </div>
@@ -164,8 +164,8 @@
     <br>
 
     <div id="chatB">
-        <form action="" autocomplete="off" name="msg" id="mesForm">
-            <input name="msg" autocomplete="off" type="text" placeholder="Enter message: ">
+        <form action="" autocomplete="off" id="mesForm">
+            <input autocomplete="off" type="text" placeholder="Enter message: ">
         </form>
     </div>
 </body>

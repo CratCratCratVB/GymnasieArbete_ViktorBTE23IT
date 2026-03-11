@@ -52,5 +52,15 @@ document.getElementById("createRoomForm")?.addEventListener("submit", async (e) 
     });
 
 
+    const data = await res.json();
+    if (data.success){
+        console.log("Room Created: ", data.room)
 
-}); 
+        socket.emit("joinRoom", data.room.name);
+
+        alert(`Room "${data.room.name}" created!`);
+        document.getElementById("createRoomForm").classList.toggle("hidden");
+    } else {
+        alert
+    }
+});
