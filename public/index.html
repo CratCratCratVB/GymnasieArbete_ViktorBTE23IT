@@ -49,7 +49,7 @@
             border: 1px solid #ccc;
         }
 
-        #chatB {
+        #chatB, #chatHere{
         margin: 30px auto;
         background: #ffffff;
         padding: 15px;
@@ -78,6 +78,10 @@
 
         function toggleCreateRoom(){
             document.getElementById("createRoomBtn").classList.toggle("hidden");
+        }
+        function toggleRoomsList(){
+            document.getElementById("roomsListBox").classList.toggle("hidden");
+            loadRooms();
         }
 
         show = id => {
@@ -124,7 +128,7 @@
         </h1>
         <a href="#" id="registerOpt" onclick="show('registerBox')">Register</a>
         <a href="#" id="loginOpt" onclick="show('loginBox')">Login</a>
-        <a href="/rooms" id="rooms">Rooms</a>
+        <a href="#" id="rooms" onclick="toggleRoomsList()">Rooms</a>
         <a href="#" id="createR" onclick="toggleCreateRoom()">Create Room</a>
         <a href="/logout">Logout</a>
     </div>
@@ -158,16 +162,21 @@
         </form>
     </div>
 
-    <div>
+    <div id="roomsListBox" class="hidden">
+        <h2>Avaliable Rooms: </h2>
+        <div id="roomList"></div>
     </div>
 
-    <br>
-
+    <div id="chatHere">
     <div id="chatB">
         <form action="" autocomplete="off" id="mesForm">
             <input autocomplete="off" type="text" placeholder="Enter message: ">
+            <button type="submit">Send Message</button>
         </form>
     </div>
+
+    </div>
+
 </body>
 
 <footer>
