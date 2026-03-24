@@ -165,16 +165,34 @@
     <div id="roomsListBox" class="hidden">
         <h2>Avaliable Rooms: </h2>
         <div id="roomList"></div>
+
     </div>
 
-    <div id="chatHere">
-    <div id="chatB">
-        <form action="" autocomplete="off" id="mesForm">
-            <input autocomplete="off" type="text" placeholder="Enter message: ">
-            <button type="submit">Send Message</button>
-        </form>
-    </div>
+    
+    <div id="chatHere" class="hidden">
+        <div id="chatB">
 
+            <div id="roomChatBox">
+                <h2 id="roomTitle"></h2>
+
+                <div id="roomMessages"></div>
+
+                <form action="" id="roomMesForm" autocomplete="off">
+                    <input name="roomMsg" type="text" placeholder="Enter message: " required>
+                    <button type="submit">Send Message</button>
+                </form>
+
+                <button id="leaveRoomBtn">Leave Room</button>
+
+            </div>
+
+
+            <!-- Chat sender -->
+            <form action="" autocomplete="off" id="mesForm" class="hidden">
+                <input autocomplete="off" type="text" placeholder="Enter message: ">
+                <button type="submit">Send Message</button>
+            </form>
+        </div>
     </div>
 
 </body>

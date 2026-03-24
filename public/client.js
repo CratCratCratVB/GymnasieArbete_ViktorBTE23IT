@@ -19,14 +19,13 @@ socket.on("notLogged", data =>{
 });
 
 function handleChatClient(msg){
-    console.log(msg)
+    //console.log(msg)
 
     const chatB = document.querySelector("#chatB");
     const mesText = document.createElement("p");
 
     mesText.innerText = `${msg.username}: ${msg.message}`;
     chatB.appendChild(mesText);
-
 }
 
 const mesForm = document.querySelector("#mesForm");
@@ -37,8 +36,42 @@ function submitMes(ev){
     const msg = ev.target.msg.value;
 
     if(msg.trim()) sendMes(msg);
-    ev.target.msg.value = ""
+    ev.target.msg.value = "";
 }
+
+//roomMsg function send
+document.getElementById("roomMesForm").addEventListener("submit", e => {
+    e.preventDefault();
+
+    const msg = e.target.roomMsg.value;
+    if (!msg.trim()) return;
+
+    socket.emit("roomChat", {
+        room: window.currentRoom,
+        message: msg
+    });
+
+    e.target.roomMsg.value="";
+});
+
+//roomMsg function recieve
+socket.on("roomMessage", data => {
+    const box = document.getElementById("roomMessages");
+    const p = document.createElement("p");
+    p.innerText = `${data.username}: ${data.message}`;
+    box.appendChild(p);
+});
+
+//leave Room
+document.getElementById("leaveRoomBtn").addEventListener("click", () => {
+    socket.emit("leaveRoom", window.currentRoom);
+
+    document.getElementById("roomChatBox").classList.add("hidden");
+    document.getElementById("roomMessages").innerHTML = "";
+    window.currentRoom = null;
+});
+
+
 
 document.getElementById("createRoomForm")?.addEventListener("submit", async (e) => {
 
@@ -56,10 +89,15 @@ document.getElementById("createRoomForm")?.addEventListener("submit", async (e) 
     if (data.success){
         console.log("Room Created: ", data.room)
 
+        window.currentRoom = data.room.name;
         socket.emit("joinRoom", data.room.name);
 
         alert(`Room "${data.room.name}" created!`);
         document.getElementById("createRoomBtn").classList.add("hidden");
+
+        document.getElementById("roomChatBox").classList.remove("hidden");
+        document.getElementById("roomTitle").innerText = "Room: " + data.room.name;
+
     } else {
         alert("Error: " + data.message);
     }
@@ -67,7 +105,7 @@ document.getElementById("createRoomForm")?.addEventListener("submit", async (e) 
     console.log("Room submitted: " + roomName);
 });
 
-// Rooms and such
+// Rooms and such (load)
 async function loadRooms(){
     const res = await fetch("/api/rooms");
     const rooms = await res.json();
@@ -98,10 +136,16 @@ async function loadRooms(){
 
     document.querySelectorAll("button[data-room]").forEach(btn => {
         btn.addEventListener("click", () => {
-            const roomName = btn.dataset.room
+            const roomName = btn.dataset.room;
+
+            window.currentRoom = roomName;
             socket.emit("joinRoom", roomName);
+
+            document.getElementById("roomChatBox").classList.remove("hidden");
+            document.getElementById("roomTitle").innerText = "Room: " + roomName;
+            document.getElementById("roomsListBox")?.classList.add("hidden");
+
             alert("Joined: " + roomName);
-            window.location.href = "/home";
         });
     });
 }

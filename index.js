@@ -53,10 +53,6 @@ app.get("/api/rooms", (req,res) => {
   res.json(rooms);
 });
 
-app.get("/rooms", (req, res) => {
-  res.sendFile(__dirname + "/public/rooms.html");
-});
-
 
 // function checkauth(req,res,next){
 //   if(!req.session.user){
@@ -93,6 +89,12 @@ function addConnection(socket){
       console.log(`${socket.id} joined room ${roomName}`);
 
       socket.emit("roomJoined", {room: roomName});
+
+      socket.on("roomJoined", data => {
+        window.currentRoom = data.room;
+        document.getElementById("roomChatBox").classList.remove("hidden");
+        document.getElementById("roomTitle").innerText = "Room: " + data.room.name;
+      });
 
       socket.to(roomName).emit("userJoined", {
         username: user.username,
