@@ -66,7 +66,7 @@ socket.on("roomMessage", data => {
 document.getElementById("leaveRoomBtn").addEventListener("click", () => {
     socket.emit("leaveRoom", window.currentRoom);
 
-    document.getElementById("roomChatBox").classList.add("hidden");
+    document.getElementById("chatHere").classList.add("hidden");
     document.getElementById("roomMessages").innerHTML = "";
     window.currentRoom = null;
 });
@@ -93,9 +93,11 @@ document.getElementById("createRoomForm")?.addEventListener("submit", async (e) 
         socket.emit("joinRoom", data.room.name);
 
         alert(`Room "${data.room.name}" created!`);
-        document.getElementById("createRoomBtn").classList.add("hidden");
+    
 
-        document.getElementById("roomChatBox").classList.remove("hidden");
+        document.getElementById("roomMessages").innerHTML = ""
+        document.getElementById("createRoomBtn").classList.add("hidden");
+        document.getElementById("chatHere").classList.remove("hidden");
         document.getElementById("roomTitle").innerText = "Room: " + data.room.name;
 
     } else {
@@ -141,9 +143,11 @@ async function loadRooms(){
             window.currentRoom = roomName;
             socket.emit("joinRoom", roomName);
 
-            document.getElementById("roomChatBox").classList.remove("hidden");
+
+            document.getElementById("roomMessages").innerHTML = ""
             document.getElementById("roomTitle").innerText = "Room: " + roomName;
             document.getElementById("roomsListBox")?.classList.add("hidden");
+            document.getElementById("chatHere")?.classList.toggle("hidden");
 
             alert("Joined: " + roomName);
         });

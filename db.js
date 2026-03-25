@@ -1,13 +1,23 @@
-const fs = require("fs");
+const fs = require("fs").promises;
 
-function saveData(data){
+async function saveData(file, data) {
+    await fs.writeFile(file, JSON.stringify(data, null, 3));
 
-    fs.writeFileSync("db.json", JSON.stringify(data, null, 3))
 }
 
-function getData(){
+async function getData(file) {
+    try{
+        const content = await fs.readFile(file, "utf8");
+        return JSON.parse(content);
+    }
 
-    return JSON.parse(fs.readFileSync("db.json").toString())
+    catch (err) {
+        if (err.code === "ENOENT"){
+            await fs.writeFile(file, "{}");
+            return {};
+        }
+        throw err;
+    }
 }
 
-module.exports = {getData, saveData}
+module.exports = { getData, saveData }

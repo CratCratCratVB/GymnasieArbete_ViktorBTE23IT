@@ -5,11 +5,15 @@
 const express = require("express");
 const { Server } = require("socket.io");
 const fs = require("fs");
+const escape = require("escape-html");
 
 const bcrypt = require("bcryptjs");
 const { createServer } = require('http');
 const session = require("express-session");
+const { getData } = require("./db");
 //const { json } = require("stream/consumers");
+
+
 
 const app = express();
 const server = createServer(app);
@@ -85,16 +89,22 @@ function addConnection(socket){
           {message:"You must be logged in to use this function!"});
       }
 
+
+//loading room history (old messages)
       socket.join(roomName);
-      console.log(`${socket.id} joined room ${roomName}`);
+
+
+      const allMes = getData("roomMessages.json");
+      const roomMesHistory = allMes[roomName] || [];
+
+      socket.emit("roomHistory", {
+        room: roomName,
+        history: roomMesHistory
+      });
+
+      //console.log(`${socket.id} joined room ${roomName}`); logging for user join
 
       socket.emit("roomJoined", {room: roomName});
-
-      socket.on("roomJoined", data => {
-        window.currentRoom = data.room;
-        document.getElementById("roomChatBox").classList.remove("hidden");
-        document.getElementById("roomTitle").innerText = "Room: " + data.room.name;
-      });
 
       socket.to(roomName).emit("userJoined", {
         username: user.username,
@@ -136,6 +146,22 @@ function handleRoomChat(room, msg, socket){
       message: "You must be logged in to use this function!"
     });
   }
+
+
+  //adding new messages to file / loading from file
+  const allMes = getData("roomMessages.json");
+  if (!allMes[room]) allMes[room] = [];
+
+  //add new message
+  allMes[room].push({
+    username: user.username,
+    message: msg,
+    room: room,
+    ToS: Date.now()
+  });
+
+  //save updated messages
+  saveData("roomMessages.json", allMes);
 
   io.to(room).emit("roomMessage",{
     username:

@@ -18,6 +18,7 @@
 
         #topField{
             display: flex;
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             padding: 15px 25px;
@@ -29,7 +30,7 @@
         #topField h1 {
             border: 1px solid;
             border-radius: 5px;
-            padding: 0.2%;
+            padding: 6px 10px;
             margin: 10;
             font-size: 35px;
         }
@@ -41,12 +42,14 @@
             border: 1px solid;
         }
 
-        .register, .login {
+        .register, .login, .createRoom, #roomsListBox {
             background: #ffffff;
             padding: 20px;
             margin: 20px auto;
             border-radius: 8px;
             border: 1px solid #ccc;
+            max-width: 750px;
+            width: 95%;
         }
 
         #chatB, #chatHere{
