@@ -10,7 +10,7 @@ const escape = require("escape-html");
 const bcrypt = require("bcryptjs");
 const { createServer } = require('http');
 const session = require("express-session");
-const { getData } = require("./db");
+const { getData, saveData } = require("./db");
 //const { json } = require("stream/consumers");
 
 
@@ -81,7 +81,7 @@ function addConnection(socket){
     console.log("Connected");
 
     //join room
-    socket.on("joinRoom", (roomName) => {
+    socket.on("joinRoom", async (roomName) => {
       const user = socket.request.session.user;
 
       if(!user){
@@ -94,7 +94,7 @@ function addConnection(socket){
       socket.join(roomName);
 
 
-      const allMes = getData("roomMessages.json");
+      const allMes = await getData("roomMessages.json");
       const roomMesHistory = allMes[roomName] || [];
 
       socket.emit("roomHistory", {
@@ -138,7 +138,7 @@ function addConnection(socket){
 
 
 //room specific handler
-function handleRoomChat(room, msg, socket){
+async function handleRoomChat(room, msg, socket){
   const user = socket.request.session.user;
 
   if(!user){
@@ -149,19 +149,18 @@ function handleRoomChat(room, msg, socket){
 
 
   //adding new messages to file / loading from file
-  const allMes = getData("roomMessages.json");
+  const allMes = await getData("roomMessages.json");
   if (!allMes[room]) allMes[room] = [];
 
   //add new message
   allMes[room].push({
     username: user.username,
     message: msg,
-    room: room,
     ToS: Date.now()
   });
 
   //save updated messages
-  saveData("roomMessages.json", allMes);
+  await saveData("roomMessages.json", allMes);
 
   io.to(room).emit("roomMessage",{
     username:

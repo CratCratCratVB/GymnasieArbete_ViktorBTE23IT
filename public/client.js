@@ -62,6 +62,18 @@ socket.on("roomMessage", data => {
     box.appendChild(p);
 });
 
+//load previous messages
+socket.on("roomHistory", data => {
+    const box = document.getElementById("roomMessages");
+    box.innerHTML = "";
+
+    data.history.forEach(msg => {
+        const p = document.createElement("p");
+        p.innerText = `${msg.username}: ${msg.message}`;
+        box.appendChild(p);
+    });
+});
+
 //leave Room
 document.getElementById("leaveRoomBtn").addEventListener("click", () => {
     socket.emit("leaveRoom", window.currentRoom);
@@ -90,7 +102,7 @@ document.getElementById("createRoomForm")?.addEventListener("submit", async (e) 
         console.log("Room Created: ", data.room)
 
         window.currentRoom = data.room.name;
-        socket.emit("joinRoom", data.room.name);
+        socket.emit("joinRoom", data.room.name); 
 
         alert(`Room "${data.room.name}" created!`);
     
@@ -147,7 +159,7 @@ async function loadRooms(){
             document.getElementById("roomMessages").innerHTML = ""
             document.getElementById("roomTitle").innerText = "Room: " + roomName;
             document.getElementById("roomsListBox")?.classList.add("hidden");
-            document.getElementById("chatHere")?.classList.toggle("hidden");
+            document.getElementById("chatHere")?.classList.remove("hidden");
 
             alert("Joined: " + roomName);
         });
