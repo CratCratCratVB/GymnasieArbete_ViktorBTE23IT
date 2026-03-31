@@ -83,6 +83,50 @@ document.getElementById("leaveRoomBtn").addEventListener("click", () => {
     window.currentRoom = null;
 });
 
+//message rendererer
+function renderMes(msg){
+    const div = document.createElement("div");
+    div.dataset.id = msg.id;
+
+    div.innerHTML = `
+    <strong>${msg.username}</strong>: ${msg.message}
+    ${msg.username === currentUser ? `
+        <button class = "editBtn">Edit</button>
+        <button class = "deleteBtn">Delete</button>
+        ` : ""}
+    `;
+
+    const editBtn = div.querySelector(".editBtn");
+    if (editBtn){
+        editBtn.addEventListener("click", () => {
+            const newText = prompt("Edit your message: ", msg.message);
+            if (!newText) return;
+
+            socket.emit("editMes", {
+                room: window.currentRoom,
+                messageId: msg.id,
+                newText
+            });
+        });
+    }
+
+    const deleteBtn = div.querySelector(".deleteBtn");
+    if (deleteBtn){
+        deleteBtn.addEventListener("click", () => {
+            if (!confirm("Delete this Message?")) return;
+
+            socket.emit("messageDel", {
+                room: window.currentRoom,
+                messageId: msg.id
+            });
+
+        });
+    }
+
+    return div;
+}
+
+
 
 
 document.getElementById("createRoomForm")?.addEventListener("submit", async (e) => {

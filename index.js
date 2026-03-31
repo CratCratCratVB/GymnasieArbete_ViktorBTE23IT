@@ -129,17 +129,13 @@ function addConnection(socket){
     socket.on("roomChat", ({room, message}) => {
       handleRoomChat(room, message, socket);
     });
-
-    //global chat
-    socket.on("chat", (msg) => {
-      handleChat(msg, socket);
-    });
 }
 
 
 //room specific handler
 async function handleRoomChat(room, msg, socket){
   const user = socket.request.session.user;
+  const mesID = "msg_" + Date.now() + "_" + Math.random().toString(36).slice(2);
 
   if(!user){
     return socket.emit("notLogged", {
@@ -154,6 +150,7 @@ async function handleRoomChat(room, msg, socket){
 
   //add new message
   allMes[room].push({
+    Id: mesID,
     username: user.username,
     message: msg,
     ToS: Date.now()
@@ -163,34 +160,12 @@ async function handleRoomChat(room, msg, socket){
   await saveData("roomMessages.json", allMes);
 
   io.to(room).emit("roomMessage",{
-    username:
-    user.username,
+    Id: mesID,
+    username: user.username,
     message: msg,
     room: room,
     ToS: Date.now()
   });
-}
-
-
-//global handler
-function handleChat(msg, socket){
-    //console.log("client sent: ", msg); debuhh
-    if(socket.request.session.user){
-      const user = socket.request.session.user;
-
-      // send msg to all connected users IF logged in
-      return io.emit("globalChat",{
-        username: user.username,
-        message: msg,
-        ToS: Date.now()
-      });
-    }
-
-    if(!socket.request.session.user){
-      return socket.emit("notLogged", {
-        message: "You must be logged in to use this function!"
-      });
-    }
 }
 
 // home route + send user login state
@@ -202,6 +177,54 @@ app.get("/home", (req, res)=>{
 // second route to get login state
 app.get("/auth_stats", (req, res) =>{
   res.json({loggedIn: !!req.session.user});
+});
+
+
+//message editor (server)
+socket.on("editMes", async ({ room, mesID, newText}) => {
+  const user = socket.request.session.user;
+  if (!user) return socket.emit("notLogged", { message: "You must be logged in to use this function!" });
+
+  const allMes = await getData("roomMessages.json");
+  const roomMessages = allMes[room] || [];
+
+  const msg = roomMessages.find(m => m.id === mesID);
+  if (!msg) return;
+  if (msg.username !== user.username) return;
+
+  msg.message = newText;
+  msg.edited = true;
+
+  await saveData("roomMessages.json", allMes);
+
+  io.to(room).emit("messageEdit", {
+    id: mesID,
+    newText: msg,
+    room: room
+  });
+});
+
+//delete message (server)
+socket.on("deleteMes", async ({ room, mesID }) => {
+  const user = socket.request.session.user;
+  if (!user) return socket.emit("notLogged", { message: "You must be logged in to use this function!" });
+
+  const allMes = await getData("roomMessages.json");
+  const roomMessages = allMes[room] || [];
+
+  const msgIndex = roomMessages.findIndex(m => m.id === mesID);
+  if (msgIndex === -1) return;
+
+  if (roomMessages[msgIndex].username !== user.username) return;
+
+  roomMessages.splice(msgIndex, 1);
+
+  await saveData("roomMessages.json", allMes);
+
+  io.to(room).emit("messageDel", {
+    id: mesID,
+    room: room
+  });
 });
 
 
