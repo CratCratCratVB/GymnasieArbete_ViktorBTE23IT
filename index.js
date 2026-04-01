@@ -129,6 +129,54 @@ function addConnection(socket){
     socket.on("roomChat", ({room, message}) => {
       handleRoomChat(room, message, socket);
     });
+
+    //message editor (server)
+    socket.on("editMes", async ({ room, mesID, newText}) => {
+      const user = socket.request.session.user;
+      if (!user) return socket.emit("notLogged", { message: "You must be logged in to use this function!" });
+    
+      const allMes = await getData("roomMessages.json");
+      const roomMessages = allMes[room] || [];
+    
+      const msg = roomMessages.find(m => m.id === mesID);
+      if (!msg) return;
+      if (msg.username !== user.username) return;
+    
+      msg.message = newText;
+      msg.edited = true;
+    
+      await saveData("roomMessages.json", allMes);
+    
+      io.to(room).emit("messageEdit", {
+        id: mesID,
+        newText: msg.message,
+        room: room
+      });
+    });
+
+
+    //delete message (server)
+    socket.on("messageDel", async ({ room, mesID }) => {
+      const user = socket.request.session.user;
+      if (!user) return socket.emit("notLogged", { message: "You must be logged in to use this function!" });
+    
+      const allMes = await getData("roomMessages.json");
+      const roomMessages = allMes[room] || [];
+    
+      const msgIndex = roomMessages.findIndex(m => m.id === mesID);
+      if (msgIndex === -1) return;
+    
+      if (roomMessages[msgIndex].username !== user.username) return;
+    
+      roomMessages.splice(msgIndex, 1);
+    
+      await saveData("roomMessages.json", allMes);
+    
+      io.to(room).emit("messageDel", {
+        id: mesID,
+        room: room
+      });
+    });
 }
 
 
@@ -150,7 +198,7 @@ async function handleRoomChat(room, msg, socket){
 
   //add new message
   allMes[room].push({
-    Id: mesID,
+    id: mesID,
     username: user.username,
     message: msg,
     ToS: Date.now()
@@ -160,7 +208,7 @@ async function handleRoomChat(room, msg, socket){
   await saveData("roomMessages.json", allMes);
 
   io.to(room).emit("roomMessage",{
-    Id: mesID,
+    id: mesID,
     username: user.username,
     message: msg,
     room: room,
@@ -176,54 +224,15 @@ app.get("/home", (req, res)=>{
 
 // second route to get login state
 app.get("/auth_stats", (req, res) =>{
-  res.json({loggedIn: !!req.session.user});
-});
-
-
-//message editor (server)
-socket.on("editMes", async ({ room, mesID, newText}) => {
-  const user = socket.request.session.user;
-  if (!user) return socket.emit("notLogged", { message: "You must be logged in to use this function!" });
-
-  const allMes = await getData("roomMessages.json");
-  const roomMessages = allMes[room] || [];
-
-  const msg = roomMessages.find(m => m.id === mesID);
-  if (!msg) return;
-  if (msg.username !== user.username) return;
-
-  msg.message = newText;
-  msg.edited = true;
-
-  await saveData("roomMessages.json", allMes);
-
-  io.to(room).emit("messageEdit", {
-    id: mesID,
-    newText: msg,
-    room: room
+  res.json({loggedIn: !!req.session.user,
+    username: req.session.user?.username || null
   });
 });
 
-//delete message (server)
-socket.on("deleteMes", async ({ room, mesID }) => {
-  const user = socket.request.session.user;
-  if (!user) return socket.emit("notLogged", { message: "You must be logged in to use this function!" });
-
-  const allMes = await getData("roomMessages.json");
-  const roomMessages = allMes[room] || [];
-
-  const msgIndex = roomMessages.findIndex(m => m.id === mesID);
-  if (msgIndex === -1) return;
-
-  if (roomMessages[msgIndex].username !== user.username) return;
-
-  roomMessages.splice(msgIndex, 1);
-
-  await saveData("roomMessages.json", allMes);
-
-  io.to(room).emit("messageDel", {
-    id: mesID,
-    room: room
+app.get("/auth_stats", (req, res) => {
+  res.json({
+    loggedIn: !!req.session.user,
+    username: req.session.user?.username || null
   });
 });
 
@@ -234,14 +243,14 @@ app.post("/register", (req,res) =>{
   const username = req.body.username;
   const email = req.body.email;
   const password = bcrypt.hashSync(req.body.password, 12);
-  const Id = "Id_" + Date.now();
+  const id = "Id_" + Date.now();
   const role = "user";
 
   const users = JSON.parse(fs.readFileSync("users.json").toString());
   if (users.find(u => u.email == email)) return res.send("User already exists, please try again.");
   if (users.find(u => u.username == username)) return res.send("Username already taken, please try another");
 
-  users.push({username, Id, email, password, role});
+  users.push({username, id, email, password, role});
   fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
 
   res.redirect("/home/?User_Created");
@@ -260,7 +269,7 @@ app.post("/login", (req,res) => {
   const checkP = bcrypt.compareSync(password, user.password);
   if(!checkP) return res.send("Incorrect Credentials, try again.");
 
-  req.session.user = {username: user.username, Id: user.Id, email: user.email, role: user.role};
+  req.session.user = {username: user.username, id: user.id, email: user.email, role: user.role};
   res.redirect("/home/?Login_Succsess");
 });
 
@@ -293,7 +302,7 @@ app.post("/createRoom", (req, res) => {
   const newRoom = {
     id: "Room_" + Date.now(),
     name: roomName.trim(),
-    ownerId: req.session.user.Id,
+    ownerid: req.session.user.id,
     createdDate: Date.now()
   };
 

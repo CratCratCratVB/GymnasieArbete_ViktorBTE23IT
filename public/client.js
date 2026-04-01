@@ -1,4 +1,17 @@
 // const { application } = require("express");
+async function loadUser(){
+    const res = await fetch("/auth_stats");
+    const data = await res.json();
+
+    if(data.loggedIn){
+        window.currentUser = data.username;
+    } else {
+        window.currentUser = null;
+    }
+}
+
+loadUser();
+
 
 console.log("client");
 
@@ -7,10 +20,6 @@ const socket = io({
     withCredentials: true
 });
 
-function sendMes(msg){
-    socket.emit("chat", msg)
-    console.log("Message sent: ", msg)
-}
 
 socket.on("globalChat", handleChatClient);
 
@@ -57,9 +66,8 @@ document.getElementById("roomMesForm").addEventListener("submit", e => {
 //roomMsg function recieve
 socket.on("roomMessage", data => {
     const box = document.getElementById("roomMessages");
-    const p = document.createElement("p");
-    p.innerText = `${data.username}: ${data.message}`;
-    box.appendChild(p);
+    const msgDiv = renderMes(data);
+    box.appendChild(msgDiv);
 });
 
 //load previous messages
@@ -68,9 +76,8 @@ socket.on("roomHistory", data => {
     box.innerHTML = "";
 
     data.history.forEach(msg => {
-        const p = document.createElement("p");
-        p.innerText = `${msg.username}: ${msg.message}`;
-        box.appendChild(p);
+        const msgDiv = renderMes(msg);
+        box.appendChild(msgDiv)
     });
 });
 
@@ -89,13 +96,14 @@ function renderMes(msg){
     div.dataset.id = msg.id;
 
     div.innerHTML = `
-    <strong>${msg.username}</strong>: ${msg.message}
+    <strong>${msg.username}</strong>: 
+    <span class = "messageText">${msg.message}</span>
     ${msg.username === currentUser ? `
         <button class = "editBtn">Edit</button>
         <button class = "deleteBtn">Delete</button>
         ` : ""}
     `;
-
+    //edit emitter
     const editBtn = div.querySelector(".editBtn");
     if (editBtn){
         editBtn.addEventListener("click", () => {
@@ -104,12 +112,12 @@ function renderMes(msg){
 
             socket.emit("editMes", {
                 room: window.currentRoom,
-                messageId: msg.id,
+                mesID: msg.id,
                 newText
             });
         });
     }
-
+    //delete emitter
     const deleteBtn = div.querySelector(".deleteBtn");
     if (deleteBtn){
         deleteBtn.addEventListener("click", () => {
@@ -117,16 +125,28 @@ function renderMes(msg){
 
             socket.emit("messageDel", {
                 room: window.currentRoom,
-                messageId: msg.id
+                mesID: msg.id
             });
-
         });
     }
 
     return div;
 }
 
+//edit message
+socket.on("messageEdit", ({ id, newText }) => {
+    const msgDiv = document.querySelector(`[data-id="${id}"]`);
+    if (msgDiv){
+        msgDiv.querySelector(".messageText").textContent = newText + " (edited)";
+    }
+});
 
+//delete message
+socket.on("messageDel", ({ id }) => {
+    const msgDiv = document.querySelector(`[data-id="${id}"]`);
+    if (msgDiv) msgDiv.remove();
+
+});
 
 
 document.getElementById("createRoomForm")?.addEventListener("submit", async (e) => {
@@ -145,13 +165,13 @@ document.getElementById("createRoomForm")?.addEventListener("submit", async (e) 
     if (data.success){
         console.log("Room Created: ", data.room)
 
+        await loadUser();
+
         window.currentRoom = data.room.name;
         socket.emit("joinRoom", data.room.name); 
 
         alert(`Room "${data.room.name}" created!`);
     
-
-        document.getElementById("roomMessages").innerHTML = ""
         document.getElementById("createRoomBtn").classList.add("hidden");
         document.getElementById("chatHere").classList.remove("hidden");
         document.getElementById("roomTitle").innerText = "Room: " + data.room.name;
@@ -193,7 +213,8 @@ async function loadRooms(){
     });
 
     document.querySelectorAll("button[data-room]").forEach(btn => {
-        btn.addEventListener("click", () => {
+        btn.addEventListener("click", async () => {
+            await loadUser();
             const roomName = btn.dataset.room;
 
             window.currentRoom = roomName;
