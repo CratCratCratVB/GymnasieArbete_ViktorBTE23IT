@@ -250,6 +250,16 @@ app.post("/register", (req,res) =>{
   if (users.find(u => u.email == email)) return res.send("User already exists, please try again.");
   if (users.find(u => u.username == username)) return res.send("Username already taken, please try another");
 
+  if (!username){
+    return res.status(400).send("Username required.")
+  }
+  if (!email){
+    return res.status(400).send("Email required.")
+  }
+  if (!password){
+    return res.status(400).send("Password required.")
+  }
+
   users.push({username, id, email, password, role});
   fs.writeFileSync("users.json", JSON.stringify(users, null, 2));
 
@@ -265,6 +275,14 @@ app.post("/login", (req,res) => {
   const user = users.find(u => u.username == username);
 
   if(!user) return res.send("Incorrect Credentials, try again.");
+
+  if(!username){
+    return res.status(400).send("Username required.")
+  }
+
+  if(!password){
+    return res.status(400).send("Password required.")
+  }
 
   const checkP = bcrypt.compareSync(password, user.password);
   if(!checkP) return res.send("Incorrect Credentials, try again.");
