@@ -348,5 +348,5 @@ async function loadRooms(){
     });
 }
 ```
-
+***
 All kod som visas i detta readme.md fil är särskilt viktiga eftersom de täcker nya ämnen vilket jag själv behövde gå igenom och studera för att få de att fungera så bra som möjligt. Mitt gymnasiearbete handlar främst om websockets men använder ett antal andra metoder vilka bygger på applikationen (ex. Bcyrpt, express, session osv...) men nämns inte  direkt då dessa inte är fokusämnet av mitt arbete men spelar fortfarande stor roll. 
