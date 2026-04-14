@@ -77,7 +77,50 @@ Detta funktion börjar först med att skicka en fetch (GET request för /auth_st
 ## 2. JavaScript / index.js
 Detta är JavaScript koden vilket används på servern och samspelar med klienten (client.js) för att applikationen ska kunna fungera som den ska. 
 
-1. Funktioner samt en route för att ladda rum / spara rum till en .JSON fil, /api/rooms route för att koppla loadRooms till klient-sidan (client.js).
+1. Start-koden för servern, importerar alla moduler som krävs för att applikationen ska fungera samt konfigurationen för sessions. 
+```
+const express = require("express");
+const { Server } = require("socket.io");
+const fs = require("fs");
+const escape = require("escape-html");
+
+const bcrypt = require("bcryptjs");
+const { createServer } = require('http');
+const session = require("express-session");
+const { getData, saveData } = require("./db");
+//const { json } = require("stream/consumers");
+
+
+
+const app = express();
+const server = createServer(app);
+
+// sessions config ↓↓↓
+app.use(express.urlencoded({extended: true}));
+
+app.set('trust proxy', 1) // trust first proxy
+const seshMw = session({
+  secret: 'CratChatSecret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax"
+  }
+});
+```
+
+2. Kod för att skapa en socket samt koppla det till sessions. 
+```
+const io = new Server(server);
+io.engine.use(seshMw);
+
+io.use((socket, next) => {  
+  next();
+});
+```
+
+3. Funktioner samt en route för att ladda rum / spara rum till en .JSON fil, /api/rooms route för att koppla loadRooms till klient-sidan (client.js).
 ```
 function loadRooms(){
   if(!fs.existsSync("rooms.json")){
@@ -98,7 +141,7 @@ app.get("/api/rooms", (req,res) => {
 ```
 Dessa funktioner används på några ställen där det krävs och dess funktionalitet är för att kunna ladda en lista av alla tillgängliga rum ( function loadRooms(){...} ), spara ner alla rum till en .JSON (rooms.json). Den sista delen (app.get("/api/rooms",  (req,res) => {...}); ) används för att kunna skapa en route vilket klienten lyssnar av för att loadRooms(); funktionen ska kunna användas och på så sätt ladda in alla tillgängliga rum.
 
-2. Funktion som lägger till en koppling till klienten med servern (addConnection) samt vidare funktioner för att användaren ska kunna interagera med applikationen. Sparande, laddning, redigering och radering av tidigare skickade meddelander
+4. Funktion som lägger till en koppling till klienten med servern (addConnection) samt vidare funktioner för att användaren ska kunna interagera med applikationen. Sparande, laddning, redigering och radering av tidigare skickade meddelander
 ```
 function addConnection(socket){
     console.log("Connected");
@@ -203,7 +246,7 @@ function addConnection(socket){
 }
 ```
 
-3. handleRoomChat funktion vilket används för att hantera meddelander som användare skickar (sätta information om meddelandet som vilket användare som skickade, specifik id, meddelandets innehåll samt tiden då meddelandet skickades.)
+5. handleRoomChat funktion vilket används för att hantera meddelander som användare skickar (sätta information om meddelandet som vilket användare som skickade, specifik id, meddelandets innehåll samt tiden då meddelandet skickades.)
 ```
 async function handleRoomChat(room, msg, socket){
   const user = socket.request.session.user;
